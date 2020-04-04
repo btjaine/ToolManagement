@@ -22,7 +22,6 @@ public:
 
 			CControlUI* pControl = static_cast<CControlUI*>(pWnd->m_pm.FindControl(_T("cancel_btn")));
 			if (pControl) pControl->SetVisible(false);
-
 		}
 		return pWnd->ShowModal();
 	}

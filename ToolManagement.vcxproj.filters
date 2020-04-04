@@ -60,6 +60,12 @@
     <ClInclude Include="CFaceDatabase.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="lib_uv_udp_client.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lib_uv_udp_client_face.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ToolManagement.cpp">
@@ -90,6 +96,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CFaceDatabase.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib_uv_udp_client.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lib_uv_udp_client_face.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

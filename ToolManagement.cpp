@@ -11,7 +11,53 @@ INITIALIZE_EASYLOGGINGPP
 
 //can not repeat program
 HANDLE hMutex=nullptr;
+char g_cProgramPath[1024] = {0};
 
+//宽字节转多字节
+bool wide_char_2_multi_char(wchar_t* buf, char* str)
+{
+	auto i_length = 0;
+	//获取字节长度   
+	i_length = WideCharToMultiByte(CP_ACP, 0, buf, -1, nullptr, 0, nullptr, nullptr);
+	//将wchar_t值赋给_char    
+	WideCharToMultiByte(CP_ACP, 0, buf, -1, str, i_length, nullptr, nullptr);
+	return true;
+};
+
+void GetProgramFullPath()//获取程序运行的全路径
+{
+	int    nPos;
+	CString m_strFilePath;
+	GetModuleFileName(nullptr, m_strFilePath.GetBufferSetLength(MAX_PATH + 1), MAX_PATH);
+	m_strFilePath.ReleaseBuffer();
+	nPos = m_strFilePath.ReverseFind('\\');
+	m_strFilePath = m_strFilePath.Left(nPos + 1);
+	//转为char
+	wide_char_2_multi_char(m_strFilePath.GetBuffer(0), g_cProgramPath);
+};
+//初始化日志设置
+void InitLogSetting()
+{
+	//设置程序运行的日子和路径
+	char m_cTemp[1024] = { 0 };
+	if (strlen(g_cProgramPath) > 0)
+	{
+		strcat_s(m_cTemp, 1024, g_cProgramPath);
+		strcat_s(m_cTemp, 1024, "my_log.conf");
+	}
+	else
+	{
+		strcpy_s(m_cTemp, 1024, "D:/my_log.conf");
+	}
+	el::Configurations conf(m_cTemp);
+	el::Loggers::reconfigureAllLoggers(conf);
+	/// 防止Fatal级别日志中断程序  
+	el::Loggers::addFlag(el::LoggingFlag::DisableApplicationAbortOnFatalLog);
+	/// 选择划分级别的日志     
+	el::Loggers::addFlag(el::LoggingFlag::HierarchicalLogging);
+	/// 设置级别门阀值，修改参数可以控制日志输出  
+	el::Loggers::setLoggingLevel(el::Level::Global);
+};;
 
 void InitResource()
 {
@@ -92,6 +138,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 			return 0;
 		}
 	}
+	GetProgramFullPath();
+	//日志配置
+	InitLogSetting();
 	//初始化olecom
 	HRESULT Hr = ::CoInitialize(NULL);
 	if (FAILED(Hr)) return 0;
@@ -101,6 +150,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	CPaintManagerUI::SetInstance(hInstance);
 	// 初始化资源
 	InitResource();
+	/*CPaintManagerUI::SetResourceType(UILIB_FILE);
+	// 资源路径
+	CDuiString strResourcePath = CPaintManagerUI::GetInstancePath();
+	// 加载资源
+	strResourcePath += _T("skin\\");
+	CPaintManagerUI::SetResourcePath(strResourcePath.GetData());
+	// 加载资源管理器
+	CResourceManager::GetInstance()->LoadResource(_T("res.xml"), NULL);*/
 	//建立窗口
 	auto pMainWnd = new CMainWindow();
 	if (pMainWnd == nullptr) return 0;
@@ -117,6 +174,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	OleUninitialize();
 	// COM
 	::CoUninitialize();
-
+	//Release mutex
+	ReleaseMutex(hMutex);
+	LOG(INFO) << "Exit system";
 	return 0;
 }
